@@ -1,0 +1,22 @@
+{
+  "name": "otgc-node",
+  "version": "0.0.1",
+  "description": "otgc-node",
+  "main": "main.js",
+  "dependencies": {
+    "electron": "^10.1.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "iotivity"
+  ],
+  "author": "tokita.hiroshi@gmail.com",
+  "license": "ISC",
+
+  "scripts": {
+    "start": "electron ."
+  }
+}
