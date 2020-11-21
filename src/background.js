@@ -59,7 +59,9 @@ const templateMenu = [
 ];
 
 const menu = Menu.buildFromTemplate(templateMenu);
+
 Menu.setApplicationMenu(menu);
+
 
 async function createWindow() {
   // Create the browser window.
