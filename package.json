@@ -10,6 +10,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "bootstrap-vue": "^2.19.0",
     "core-js": "^3.6.5",
     "electron": "^9.0.0",
     "iotivity-lite": "^0.1.1",
