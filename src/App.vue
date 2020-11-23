@@ -5,13 +5,13 @@
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
         <b-collapse id="nav-collapse" is-nav>
           <b-navbar-nav>
-            <b-nav-item href="#">Discover</b-nav-item>
-            <b-nav-item href="#">Onboard</b-nav-item>
-            <b-nav-item href="#">Offboard</b-nav-item>
-            <b-nav-item href="#">OBT mode</b-nav-item>
-            <b-nav-item href="#">Client mode</b-nav-item>
-            <b-nav-item href="#">Reset</b-nav-item>
-            <b-nav-item href="#">Certificate</b-nav-item>
+            <b-nav-item active v-on:click="discovery()">   Discover    </b-nav-item>
+            <b-nav-item active v-on:click="onboard()">     Onboard     </b-nav-item>
+            <b-nav-item active v-on:click="offboard()">    Offboard    </b-nav-item>
+            <b-nav-item active v-on:click="obt_mode()">    OBT mode    </b-nav-item>
+            <b-nav-item active v-on:click="client_mode()"> Client mode </b-nav-item>
+            <b-nav-item active v-on:click="reset()">       Reset       </b-nav-item>
+            <b-nav-item active v-on:click="certificate()"> Certificate </b-nav-item>
           </b-navbar-nav>
         </b-collapse>
       </b-navbar>
@@ -91,3 +91,29 @@
 }
 
 </style>
+
+<script>
+const { ipcRenderer } = window.require('electron')
+
+export default {
+  name: "otbc",
+  data() {
+    return {
+      loading: false,
+      error: null
+    };
+  },
+  methods: {
+    discovery: () => {
+      ipcRenderer.invoke("message", 'discovery').then((result) => {
+        console.log(result);
+      })
+    },
+    onboard: () => { ipcRenderer.invoke("discovery"); },
+    offboard: () => { ipcRenderer.invoke("discovery"); },
+    obt_mode: () => { ipcRenderer.invoke("discovery"); },
+    client_mode: () => { ipcRenderer.invoke("discovery"); },
+  }
+}
+
+</script>
