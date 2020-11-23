@@ -1,6 +1,33 @@
+<script>
+const { ipcRenderer } = window.require('electron')
+
+export default {
+  name: "otbc",
+  data() {
+    return {
+      loading: false,
+      error: null
+    };
+  },
+  methods: {
+    discovery: () => {
+      ipcRenderer.invoke("message", 'discovery').then((result) => {
+        console.log(result);
+      })
+    },
+    onboard: () => { ipcRenderer.invoke("discovery"); },
+    offboard: () => { ipcRenderer.invoke("discovery"); },
+    obt_mode: () => { ipcRenderer.invoke("discovery"); },
+    client_mode: () => { ipcRenderer.invoke("discovery"); },
+  }
+}
+</script>
+
+
 <template>
-    <div id="wrap" class="wrap">
-  <div id="app" class="container-fluid container-root">
+  <div id="wrap" class="wrap">
+    <div id="app" class="container-fluid container-root">
+
       <b-navbar toggleable="lg" type="dark" variant="info" class="navbar">
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
         <b-collapse id="nav-collapse" is-nav>
@@ -92,28 +119,3 @@
 
 </style>
 
-<script>
-const { ipcRenderer } = window.require('electron')
-
-export default {
-  name: "otbc",
-  data() {
-    return {
-      loading: false,
-      error: null
-    };
-  },
-  methods: {
-    discovery: () => {
-      ipcRenderer.invoke("message", 'discovery').then((result) => {
-        console.log(result);
-      })
-    },
-    onboard: () => { ipcRenderer.invoke("discovery"); },
-    offboard: () => { ipcRenderer.invoke("discovery"); },
-    obt_mode: () => { ipcRenderer.invoke("discovery"); },
-    client_mode: () => { ipcRenderer.invoke("discovery"); },
-  }
-}
-
-</script>

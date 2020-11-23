@@ -5,8 +5,6 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
-console.log("background.js");
-
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
@@ -27,9 +25,7 @@ const templateMenu = [
           if(focusedWindow) focusedWindow.reload()
         },
       },
-      {
-        role: 'close',
-      },
+      { role: 'close', },
     ]
   },
   {
@@ -44,16 +40,12 @@ const templateMenu = [
   },
   {
     label: 'Help', submenu: [
-      {
-        role: 'about',
-      }
+      { role: 'about', }
     ]
   },
   {
     label: 'Developper', submenu: [
-      {
-        role: 'toggleDevTools',
-      }
+      { role: 'toggleDevTools', }
     ]
   },
 ];
@@ -116,11 +108,6 @@ app.on('ready', async () => {
   createWindow()
 })
 
-ipcMain.handle('message', (evt, arg) => {
-  console.log(evt);
-  console.log(arg);
-})
-
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === 'win32') {
@@ -176,7 +163,7 @@ var ep = null;
 function get_handler(resp)
 {
   console.log("get_handler");
-  console.log(resp);
+  console.log("" + resp);
 }
 
 function justwork(uuid, stat)
@@ -201,9 +188,6 @@ function obt_discover(uuid, endpoints)
 
 function request_entry() {
   console.log("request_entry");
-  OC.Obt.init();
-  OC.Obt.discover_unowned_devices(obt_discover);
-
 }
 
 function handle_signal()
@@ -224,9 +208,20 @@ async function main() {
 
   console.log("OC.oc_main_init(handler)");
   var init = OC.main_init(handler);
+  OC.Obt.init();
   console.log("end OC.oc_main_init(handler)");
   await OC.main_loop();
   console.log("end OC.oc_main_loop()");
 };
 
+ipcMain.handle('message', (evt, arg) => {
+  console.log(evt);
+  console.log(arg);
+  if(arg == 'discovery') {
+    OC.Obt.discover_unowned_devices(obt_discover);
+  }
+})
+
 main();
+
+
