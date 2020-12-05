@@ -5,9 +5,8 @@ export default {
   name: "otbc",
   data() {
     return {
-      loading: false,
-      error: null
-    };
+      devices: { "hoge": {id: "xxx"} },
+    }
   },
   methods: {
     discovery: () => {
@@ -19,6 +18,12 @@ export default {
     offboard: () => { ipcRenderer.invoke("discovery"); },
     obt_mode: () => { ipcRenderer.invoke("discovery"); },
     client_mode: () => { ipcRenderer.invoke("discovery"); },
+    select_device () {
+      alert(this.devices);
+    },
+    showAlert() {
+      alert(this.devices);
+    },
   }
 }
 </script>
@@ -46,12 +51,12 @@ export default {
       <div id="main" class="row">
         <div class="leftpane">
           <b-list-group id="devicelist" class="devicelist col">
-          <b-list-group-item button>This is a button too</b-list-group-item>
+            <b-list-group-item button v-on:click="select_device()" class="action-item">List item</b-list-group-item>
           </b-list-group>
 	</div>
         <div id="rightpane" class="col rightpane">
           <b-list-group id="propertylist" class="propertylist">
-            <b-list-group-item button>Button item</b-list-group-item>
+            <b-list-group-item button v-on:click="showAlert('click')">Button item</b-list-group-item>
           </b-list-group>
 
           <b-tabs row class="tabs">
