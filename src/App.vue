@@ -5,8 +5,7 @@ export default {
   name: "otbc",
   data() {
     return {
-      devices: {xxx: {oic: { d: { di: "", n: "dummy", piid: "", role: "", types: "" },
-                             p: { } } } },
+      devices: {},
       selected: '',
     }
   },
@@ -16,7 +15,7 @@ export default {
       var di = this.devices[uuid];
       console.log(di);
       if(typeof di === 'undefined') {
-        return { x: "x"};
+        return {};
       }
 
       var flatten = function(ht, prefix, result) {
@@ -43,44 +42,45 @@ export default {
 
       //ipcRenderer.removeAllListeners('discovery');
       ipcRenderer.on('discovery', (event, msg) => {
+        if(typeof msg.uuid === 'undefined') return;
         console.log(JSON.stringify(msg));
         var d = vm.devices[msg.uuid];
         console.log(JSON.stringify(d));
         if(typeof d === 'undefined') {
           d = {oic: { d: { di: "", n: "", piid: "", role: "", types: "" },
-                             p: { } } };
+                             p: { } }, endpoints: msg.endoints };
           vm.$set(vm.devices, msg.uuid, d);
-        }
+        } else {
+          d['endpoints'] = msg.endpoints;
+          vm.$set(vm.devices, msg.uuid, d);
+	}
       });
 
       //ipcRenderer.removeAllListeners('/oic/d');
       ipcRenderer.on('/oic/d', (event, msg) => {
+        if(typeof msg.uuid === 'undefined') return;
         console.log(JSON.stringify(msg));
         var d = vm.devices[msg.uuid];
         console.log(JSON.stringify(d));
-        if(typeof d === 'undefined') {
-          d = {oic: { d: { di: "", n: "", piid: "", role: "", types: "" }, p: { } } };
-          vm.$set(vm.devices, msg.uuid, d);
-        }
-        var uuid = msg.uuid;
-        delete msg.uuid;
-        vm.$set(vm.devices[uuid]['oic'], 'd', msg);
-        console.log(JSON.stringify(vm.devices[uuid]));
+        if(typeof d !== 'undefined') {
+          var uuid = msg.uuid;
+          delete msg.uuid;
+          vm.$set(vm.devices[uuid]['oic'], 'd', msg);
+          console.log(JSON.stringify(vm.devices[uuid]));
+	}
       });
 
       //ipcRenderer.removeAllListeners('/oic/p');
       ipcRenderer.on('/oic/p', (event, msg) => {
+        if(typeof msg.uuid === 'undefined') return;
         console.log(JSON.stringify(msg));
         var d = vm.devices[msg.uuid];
-        console.log(JSON.stringify(d));
-        if(typeof d === 'undefined') {
-          d = {oic: { d: { di: "", n: "", piid: "", role: "", types: "" }, p: { } } };
-          vm.$set(vm.devices, msg.uuid, d);
-        }
-        var uuid = msg.uuid;
-        delete msg.uuid;
-        vm.$set(vm.devices[uuid]['oic'], 'p', msg);
-        console.log(JSON.stringify(vm.devices[uuid]));
+        if(typeof d !== 'undefined') {
+          var uuid = msg.uuid;
+          delete msg.uuid;
+          vm.$set(vm.devices[uuid]['oic'], 'p', msg);
+          console.log(JSON.stringify(vm.devices[uuid]));
+	}
       });
 
       ipcRenderer.on('/oic/res', (event, msg) => {
@@ -92,7 +92,9 @@ export default {
       })
     },
     onboard() {
-      ipcRenderer.invoke("onboard", this.selected).then((result) => {
+      var eps = this.devices[this.selected].endpoints;
+      console.log(eps);
+      ipcRenderer.invoke("onboard", { uuid: this.selected, endpoints: eps} ).then((result) => {
         console.log(result);
       });
     },
