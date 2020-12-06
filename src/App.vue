@@ -5,24 +5,105 @@ export default {
   name: "otbc",
   data() {
     return {
-      devices: { "hoge": {id: "xxx"} },
+      devices: {xxx: {oic: { d: { di: "", n: "dummy", piid: "", role: "", types: "" },
+                             p: { } } } },
+      selected: '',
     }
   },
   methods: {
-    discovery: () => {
-      ipcRenderer.invoke("message", 'discovery').then((result) => {
+    device_info(uuid) {
+      console.log(uuid);
+      var di = this.devices[uuid];
+      console.log(di);
+      if(typeof di === 'undefined') {
+        return { x: "x"};
+      }
+
+      var flatten = function(ht, prefix, result) {
+        if(typeof ht === 'object') {
+          for(var k in ht) {
+            var prefixn = k;
+            if(prefix != "") prefixn = prefix + "." + k;
+
+            var h = flatten(ht[k], prefixn, result);
+            for(var k2 in h) {
+              result[k2] = h[k2];
+            }
+          }
+        } else {
+          result[prefix] = ht;
+        }
+        return result;
+      }
+
+      return flatten(di, "", {});
+    },
+    discovery() {
+      var vm = this;
+
+      //ipcRenderer.removeAllListeners('discovery');
+      ipcRenderer.on('discovery', (event, msg) => {
+        console.log(JSON.stringify(msg));
+        var d = vm.devices[msg.uuid];
+        console.log(JSON.stringify(d));
+        if(typeof d === 'undefined') {
+          d = {oic: { d: { di: "", n: "", piid: "", role: "", types: "" },
+                             p: { } } };
+          vm.$set(vm.devices, msg.uuid, d);
+        }
+      });
+
+      //ipcRenderer.removeAllListeners('/oic/d');
+      ipcRenderer.on('/oic/d', (event, msg) => {
+        console.log(JSON.stringify(msg));
+        var d = vm.devices[msg.uuid];
+        console.log(JSON.stringify(d));
+        if(typeof d === 'undefined') {
+          d = {oic: { d: { di: "", n: "", piid: "", role: "", types: "" }, p: { } } };
+          vm.$set(vm.devices, msg.uuid, d);
+        }
+        var uuid = msg.uuid;
+        delete msg.uuid;
+        vm.$set(vm.devices[uuid]['oic'], 'd', msg);
+        console.log(JSON.stringify(vm.devices[uuid]));
+      });
+
+      //ipcRenderer.removeAllListeners('/oic/p');
+      ipcRenderer.on('/oic/p', (event, msg) => {
+        console.log(JSON.stringify(msg));
+        var d = vm.devices[msg.uuid];
+        console.log(JSON.stringify(d));
+        if(typeof d === 'undefined') {
+          d = {oic: { d: { di: "", n: "", piid: "", role: "", types: "" }, p: { } } };
+          vm.$set(vm.devices, msg.uuid, d);
+        }
+        var uuid = msg.uuid;
+        delete msg.uuid;
+        vm.$set(vm.devices[uuid]['oic'], 'p', msg);
+        console.log(JSON.stringify(vm.devices[uuid]));
+      });
+
+      ipcRenderer.on('/oic/res', (event, msg) => {
+        console.log(JSON.stringify(msg));
+      });
+
+      ipcRenderer.invoke('discovery', '').then((result) => {
         console.log(result);
       })
     },
-    onboard: () => { ipcRenderer.invoke("discovery"); },
-    offboard: () => { ipcRenderer.invoke("discovery"); },
-    obt_mode: () => { ipcRenderer.invoke("discovery"); },
-    client_mode: () => { ipcRenderer.invoke("discovery"); },
-    select_device () {
-      alert(this.devices);
+    onboard() {
+      ipcRenderer.invoke("onboard", this.selected).then((result) => {
+        console.log(result);
+      });
     },
-    showAlert() {
-      alert(this.devices);
+    offboard() { ipcRenderer.invoke("discovery"); },
+    obt_mode() { ipcRenderer.invoke("discovery"); },
+    client_mode() { ipcRenderer.invoke("discovery"); },
+    select_device(uuid) {
+      this.$set(this, 'selected', uuid);
+    },
+    showAlert(arg) {
+      alert(arg);
     },
   }
 }
@@ -51,12 +132,17 @@ export default {
       <div id="main" class="row">
         <div class="leftpane">
           <b-list-group id="devicelist" class="devicelist col">
-            <b-list-group-item button v-on:click="select_device()" class="action-item">List item</b-list-group-item>
+            <b-list-group-item button v-for="(device, dkey) in devices" v-bind:key="dkey" v-on:click="select_device(dkey)" >
+              <span style="display:block;">{{ device.oic.d.n }}</span>
+              <span style="display:block;">{{ device.oic.d.di }}</span>
+            </b-list-group-item>
           </b-list-group>
-	</div>
+        </div>
         <div id="rightpane" class="col rightpane">
           <b-list-group id="propertylist" class="propertylist">
-            <b-list-group-item button v-on:click="showAlert('click')">Button item</b-list-group-item>
+            <b-list-group-item button v-for="(val, key) in device_info(selected)" v-bind:key="key">
+              <span style="display:block;"> <span>{{ key }}</span> <span>{{ val }}</span> </span>
+            </b-list-group-item>
           </b-list-group>
 
           <b-tabs row class="tabs">

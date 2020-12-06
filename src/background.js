@@ -54,10 +54,11 @@ const menu = Menu.buildFromTemplate(templateMenu);
 
 Menu.setApplicationMenu(menu);
 
+var win = null;
 
 async function createWindow() {
   // Create the browser window.
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 1024,
     height: 768,
     webPreferences: {
@@ -166,25 +167,6 @@ function get_handler(resp)
   console.log("" + resp);
 }
 
-function justwork(uuid, stat)
-{
-  console.log("obt_justwork");
-  console.log("" + uuid);
-  console.log("" + stat);
-
-  OC.do_get('/oic/p', ep, null, get_handler, OC.HIGH_QOS);
-}
-
-function obt_discover(uuid, endpoints)
-{
-  console.log("obt_discover");
-  console.log("" + uuid);
-  console.log("" + endpoints);
-
-  ep = endpoints;
-
-  OC.Obt.perform_just_works_otm(uuid, justwork);
-}
 
 function request_entry() {
   console.log("request_entry");
@@ -214,12 +196,80 @@ async function main() {
   console.log("end OC.oc_main_loop()");
 };
 
-ipcMain.handle('message', (evt, arg) => {
-  console.log(evt);
+ipcMain.handle('discovery', (evt, arg) => {
   console.log(arg);
-  if(arg == 'discovery') {
-    OC.Obt.discover_unowned_devices(obt_discover);
-  }
+  OC.Obt.discover_unowned_devices( (uuid, endpoints) => {
+    console.log("obt_discover");
+    console.log("" + uuid);
+    console.log("" + endpoints);
+
+    var eps = [];
+    for(var e of endpoints) {
+      console.log(e.toString() );
+      eps.push(e.toString());
+    }
+
+    ep = endpoints;
+
+    win.webContents.send('discovery', { uuid: uuid.toString(), endpoints: eps} );
+
+    OC.do_get('/oic/d', endpoints, null, (resp) => {
+      var json = JSON.parse(resp.payload.toString() );
+      json['uuid'] = uuid.toString();
+      win.webContents.send('/oic/d', json);
+    }, OC.HIGH_QOS);
+
+    OC.do_get('/oic/p', endpoints, null, (resp) => {
+      var json = JSON.parse(resp.payload.toString() );
+      json['uuid'] = uuid.toString();
+      win.webContents.send('/oic/p', json);
+    }, OC.HIGH_QOS);
+
+    OC.do_get('/oic/res', endpoints, null, (resp) => {
+      console.log("inline handler /oic/res");
+      console.log(resp);
+      console.log("" + resp.payload);
+      var json = JSON.parse(resp.payload.toString() );
+      json['uuid'] = uuid.toString();
+      win.webContents.send('/oic/res', json);
+    }, OC.HIGH_QOS);
+  });
+})
+
+ipcMain.handle('onboard', (evt, arg) => {
+  console.log(arg);
+  var quuid = new OC.Uuid(arg);
+  OC.Obt.perform_just_works_otm(quuid, (uuid, stat) => {
+    console.log("obt_justwork");
+    console.log("" + uuid);
+    console.log("" + stat);
+
+
+    OC.do_get('/oic/d', ep, null, (resp) => {
+      console.log("inline handler");
+      console.log("" + resp.payload);
+      var json = JSON.parse(resp.payload.toString() );
+      json['uuid'] = uuid.toString();
+      win.webContents.send('/oic/d', json);
+    }, OC.HIGH_QOS);
+
+    OC.do_get('/oic/p', ep, null, (resp) => {
+      console.log("inline handler");
+      console.log("" + resp.payload);
+      var json = JSON.parse(resp.payload.toString() );
+      json['uuid'] = uuid.toString();
+      win.webContents.send('/oic/p', json);
+    }, OC.HIGH_QOS);
+
+    OC.do_get('/oic/res', ep, null, (resp) => {
+      console.log("inline handler /oic/res");
+      console.log(resp);
+      console.log("" + resp);
+      var json = JSON.parse(resp.payload.toString() );
+      json['uuid'] = uuid.toString();
+      win.webContents.send('/oic/res', json);
+    }, OC.HIGH_QOS);
+  });
 })
 
 main();
