@@ -173,6 +173,19 @@ function handle_signal()
   console.log("end OC.oc_main_shutdown()");
 }
 
+function get_handler2(resp)
+{
+  console.log("get_handler2");
+  //console.log(resp);
+	
+  for(var r of resp.payload) {
+    console.log(r.name);
+    console.log(r.type);
+    console.log(r.value.toString());
+  }
+}
+
+
 async function main() {
   process.on('SIGINT', handle_signal);
 
@@ -192,9 +205,9 @@ async function main() {
 
 ipcMain.handle('discovery', (evt, arg) => {
   console.log(arg);
-  OC.Obt.discover_unowned_devices( (uuid, endpoints) => {
+  OC.Obt.discover_unowned_devices( (uuidx, endpoints) => {
     console.log("obt_discover");
-    console.log("" + uuid);
+    console.log("" + uuidx);
     console.log("" + endpoints);
 
     var eps = [];
@@ -205,83 +218,47 @@ ipcMain.handle('discovery', (evt, arg) => {
 
     ep = endpoints;
 
-    win.webContents.send('discovery', { uuid: uuid.toString(), endpoints: eps} );
+    win.webContents.send('discovery', { uuid: uuidx.toString(), endpoints: eps} );
 
-    OC.do_get('/oic/d', endpoints, null, (resp) => {
-      var json = JSON.parse(resp.payload.toString() );
-      json['uuid'] = uuid.toString();
-      win.webContents.send('/oic/d', json);
-    }, OC.HIGH_QOS);
-
-    OC.do_get('/oic/p', endpoints, null, (resp) => {
-      var json = JSON.parse(resp.payload.toString() );
-      json['uuid'] = uuid.toString();
-      win.webContents.send('/oic/p', json);
-    }, OC.HIGH_QOS);
+		OC.Obt.perform_just_works_otm(uuidx, (uuid, stat) => {
+			console.log("obt_justwork");
+			console.log("" + uuid);
+			console.log("" + stat);
 /*
-    OC.do_get('/oic/res', endpoints, null, (resp) => {
-      console.log("inline handler /oic/res");
-  
-      var rep = resp.payload;
-      for(var r in rep) {
-        console.log(r.name);
-        console.log(r.type);
-        console.log(r.value);
-      }
+			OC.do_get('/oic/d', ep, null, (resp) => {
+				console.log("inline handler");
+				console.log("" + resp.payload);
+				var json = JSON.parse(resp.payload.toString() );
+				json['uuid'] = uuid.toString();
+				win.webContents.send('/oic/d', json);
+			}, OC.HIGH_QOS);
 
-      var json = JSON.parse(resp.payload.toString() );
-      json['uuid'] = uuid.toString();
-      win.webContents.send('/oic/res', json);
-    }, OC.HIGH_QOS);
+			OC.do_get('/oic/p', ep, null, (resp) => {
+				console.log("inline handler");
+				console.log("" + resp.payload);
+				var json = JSON.parse(resp.payload.toString() );
+				json['uuid'] = uuid.toString();
+				win.webContents.send('/oic/p', json);
+			}, OC.HIGH_QOS);
 */
-  });
-})
-
-ipcMain.handle('onboard', (evt, arg) => {
-  console.log(arg);
-  var quuid = new OC.Uuid(arg['uuid']);
-  console.log(quuid);
-  console.log(arg['endpoints'][0]);
-
-  OC.Obt.perform_just_works_otm(quuid, (uuid, stat) => {
-    console.log("obt_justwork");
-    console.log("" + uuid);
-    console.log("" + stat);
-
+			OC.do_get('/oic/res', ep, null, (resp) => {
+				console.log("inline handler /oic/res");
+	
+        for(var r of resp.payload) {
+					console.log(r.name);
+					console.log(r.type);
+					console.log(r.value.toString());
+				}
 /*
-    OC.do_get('/oic/d', ep, null, (resp) => {
-      console.log("inline handler");
-      console.log("" + resp.payload);
-      var json = JSON.parse(resp.payload.toString() );
-      json['uuid'] = uuid.toString();
-      win.webContents.send('/oic/d', json);
-    }, OC.HIGH_QOS);
-
-    OC.do_get('/oic/p', ep, null, (resp) => {
-      console.log("inline handler");
-      console.log("" + resp.payload);
-      var json = JSON.parse(resp.payload.toString() );
-      json['uuid'] = uuid.toString();
-      win.webContents.send('/oic/p', json);
-    }, OC.HIGH_QOS);
+				var json = JSON.parse(resp.payload.toString() );
+				console.log("json");
+				console.log(json);
+				json['uuid'] = uuid.toString();
+				win.webContents.send('/oic/res', json);
 */
-    OC.do_get('/oic/res', ep, null, (resp) => {
-      console.log("inline handler /oic/res");
- /* 
-      for(var r in rep) {
-        console.log(r.name);
-        console.log(r.type);
-        console.log(r.value);
-      }
-*/
-      //console.log("" + resp);
-      var json = JSON.parse(resp.payload.toString() );
-      console.log("json");
-      console.log(json);
-      json['uuid'] = uuid.toString();
-      win.webContents.send('/oic/res', json);
-    }, OC.HIGH_QOS);
-  });
+			}, OC.HIGH_QOS);
+		});
+  })
 })
 
 main();
