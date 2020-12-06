@@ -13,7 +13,7 @@
     "bootstrap-vue": "^2.19.0",
     "core-js": "^3.6.5",
     "electron": "^9.0.0",
-    "iotivity-lite": "^0.1.2-node4",
+    "iotivity-lite": "^0.1.2-node5",
     "napi-thread-safe-callback": "0.0.6",
     "node-addon-api": "^1.1.0",
     "node-gyp": "^7.1.2",

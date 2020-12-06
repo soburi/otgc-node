@@ -84,7 +84,15 @@ export default {
       });
 
       ipcRenderer.on('/oic/res', (event, msg) => {
+        if(typeof msg.uuid === 'undefined') return;
         console.log(JSON.stringify(msg));
+        var d = vm.devices[msg.uuid];
+        if(typeof d !== 'undefined') {
+          var uuid = msg.uuid;
+          delete msg.uuid;
+          vm.$set(vm.devices[uuid]['oic'], 'res', msg);
+          console.log(JSON.stringify(vm.devices[uuid]));
+	}
       });
 
       ipcRenderer.invoke('discovery', '').then((result) => {
