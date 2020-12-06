@@ -161,12 +161,6 @@ function app_init()
 
 var ep = null;
 
-function get_handler(resp)
-{
-  console.log("get_handler");
-  console.log("" + resp);
-}
-
 
 function request_entry() {
   console.log("request_entry");
